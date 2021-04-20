@@ -1,0 +1,6 @@
+---
+- name: PG_CONNECTION
+  value: 'postgresql://{{ pg_ssip_user }}:{{ pg_ssip_password }}@{{ pg_ssip_host }}:{{ pg_ssip_port }}/{{ pg_ssip_database }}'
+
+- name: MICROSERVICE_URL
+  value: '{{ microservices_url }}'

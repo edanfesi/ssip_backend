@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index",
-    "dev": "nodemon index"
+    "dev": "nodemon index",
+    "test": "APP_ENV=local node node_modules/.bin/mocha 'tests/**/*Test.js' --exit"
   },
   "repository": {
     "type": "git",
@@ -25,10 +26,18 @@
   },
   "homepage": "https://github.com/edanfesi/ssip_backend#readme",
   "devDependencies": {
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.7",
+    "chai": "^4.1.2",
+    "chai-http": "^4.2.1",
+    "mocha": "^6.1.4",
+    "sinon": "^7.1.1"
   },
   "dependencies": {
+    "ajv": "^8.1.0",
+    "bcrypt": "^5.0.1",
+    "body-parser": "^1.19.0",
     "express": "^4.17.1",
+    "express-session": "^1.17.1",
     "knex": "^0.95.4",
     "pg": "^8.6.0"
   }
