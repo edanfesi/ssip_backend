@@ -1,0 +1,11 @@
+version: '3'
+services:
+    postgres:
+        image: 'postgres:latest'
+        restart: always
+        volumes: 
+            - './postgres_data:/var/lib/postgresql/data'
+        environment: 
+            - PG_CONNECTION=postgres://homestead:secret@postgres:5432/ssip
+        ports:
+            - '5432:5432'
