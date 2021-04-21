@@ -1,8 +1,10 @@
 const express = require('express');
 const session = require('express-session');
-const bodyParser = require('body-parser');
+const { urlencoded, json } = require('body-parser');
 
-const routes = require('./src/routes');
+const routes = require('./app/routes');
+
+const { PORT } = process.env;
 
 const app = express();
 app.use(session({
@@ -10,11 +12,11 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }));
-app.use(bodyParser.urlencoded());
-app.use(bodyParser.json());
+app.use(urlencoded());
+app.use(json());
 
 app.use('/api/ssip', routes);
 
-app.listen(8080);
+app.listen(PORT || 8000);
 
 module.exports = app;
