@@ -6,7 +6,7 @@ const UserService = require('../services/UserService');
 const CreateNewUserSchema = require('../validators/CreateNewUserSchema');
 const UpdateUserSchema = require('../validators/UpdateUserSchema');
 const AuthUserSchema = require('../validators/AuthUserSchema');
-const { request, response } = require("../..");
+const UserRepository = require('../repositories/UserRepository');
 
 const ajv = new Ajv()
 
@@ -23,9 +23,15 @@ const ajv = new Ajv()
  UserController.getUsers = async (req, res, next) => {
     const section = 'UserController.getUsers';
     const logger = req.log || console.log;
+    const username = req.session.username;
     
     if (!req.session.loggedin) {
-        res.send({ message: "The User has to log in" });
+        res.status(401).send({ message: "The User has to log in" });
+    }
+
+    const [userData] = await UserRepository.getUserByUsername(username);
+    if (userData.role_id != 1) {
+        res.status(403).send({ error: "The user can not do this action!" });
     }
 
     logger('INFO', `${section}: start getting information of all users`);
@@ -51,9 +57,15 @@ const ajv = new Ajv()
     const section = 'UserController.getUser';
     const logger = req.log || console.log;
     const { params: { userId } } = req;
+    const username = req.session.username;
 
     if (!req.session.loggedin) {
-        res.send({ message: "The User has to log in" });
+        res.status(401).send({ message: "The User has to log in" });
+    }
+
+    const [userData] = await UserRepository.getUserByUsername(username);
+    if (userData.role_id != 1 && userData.id != userId) {
+        res.status(403).send({ error: "The user can not do this action!" });
     }
 
     logger('INFO', `${section}: start getting information of the user with id ${userId}`);
@@ -88,10 +100,6 @@ const ajv = new Ajv()
 UserController.createNewUser = async (req, res, next) => {
     const section = 'UserController.createNewUser';
     const logger = req.log || console.log;
-    
-    if (!req.session.loggedin) {
-        res.send({ message: "The User has to log in" });
-    }
 
     const isValid = ajv.validate(CreateNewUserSchema, req.body);
     if (!isValid) {
@@ -130,9 +138,15 @@ UserController.createNewUser = async (req, res, next) => {
     const section = 'UserController.updateUser';
     const logger = req.log || console.log;
     const { params: { userId } } = req;
-    
+    const username = req.session.username;
+
     if (!req.session.loggedin) {
-        res.send({ message: "The User has to log in" });
+        res.status(401).send({ message: "The User has to log in" });
+    }
+
+    const [userData] = await UserRepository.getUserByUsername(username);
+    if (userData.role_id != 1) {
+        res.status(403).send({ error: "The user can not do this action!" });
     }
 
     const isValid = ajv.validate(UpdateUserSchema, req.body)
@@ -160,9 +174,15 @@ UserController.createNewUser = async (req, res, next) => {
     const section = 'UserController.deleteUser';
     const logger = req.log || console.log;
     const { params: { userId } } = req;
+    const username = req.session.username;
 
     if (!req.session.loggedin) {
-        res.send({ message: "The User has to log in" });
+        res.status(401).send({ message: "The User has to log in" });
+    }
+
+    const [userData] = await UserRepository.getUserByUsername(username);
+    if (userData.role_id != 1) {
+        res.status(403).send({ error: "The user can not do this action!" });
     }
 
     const data = await UserService.deleteUserById(userId, { logger });
@@ -187,6 +207,8 @@ UserController.createNewUser = async (req, res, next) => {
 
     const { username } = req.body;
 
+    logger('INFO', `${section}: Start auth process for username ${username}`);
+
     const isValid = ajv.validate(AuthUserSchema, req.body);
     if (!isValid) {
         return res.status(400).send({ "message": "Invalid body" });
@@ -200,8 +222,10 @@ UserController.createNewUser = async (req, res, next) => {
     req.session.loggedin = true;
     req.session.username = username;
 
-    res.send({ message: "User logged" });
-    return response.end();
+    const [userData] = await UserRepository.getUserByUsername(username);
+    const { password, ...cleanData } = userData;
+
+    return res.send(cleanData);
  }
 
  /**
@@ -218,9 +242,7 @@ UserController.createNewUser = async (req, res, next) => {
     const section = 'UserController.auth';
     const logger = req.log || console.log;
 
-    if (!req.session.loggedin) {
-        res.send({ message: "User currently logged out" });
-    }
+    logger('INFO', `${section}: start logout process`);
 
     req.session.loggedin = false;
     req.session.username = null;

@@ -3,8 +3,8 @@ const UserService = module.exports;
 const bcrypt = require('bcrypt');
 const { options } = require('../..');
 
-const UserRepository = require('../repositories/UserRepository');
 
+const UserRepository = require('../repositories/UserRepository');
 UserService.getUsers = async (options) => {
     const section = 'UserService.getUsers';
     const { logger } = options;
