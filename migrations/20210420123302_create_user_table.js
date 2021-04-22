@@ -8,7 +8,9 @@ exports.up = knex =>
         table.string('work_position').notNullable();
         table.string('username').notNullable();
         table.string('password').notNullable();
-        table.integer('role_id').unsigned().notNullable().defaultTo(2);;
+        table.integer('role_id').unsigned().notNullable().defaultTo(2);
+        table.boolean('isLogged').defaultTo(false);
+        table.string('email').notNullable();
         table.timestamps(true, true); 
 
         table.foreign('role_id').references('id').inTable('role').onDelete('CASCADE');
