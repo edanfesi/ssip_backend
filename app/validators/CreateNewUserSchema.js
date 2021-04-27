@@ -8,9 +8,10 @@ const CreateNewUserSchema = {
         work_position: { type: 'string' },
         username: { type: 'string' },
         password: { type: 'string' },
-        role_id: { type: 'integer' }
+        role_id: { type: 'integer' },
+        email: { type: 'string' },
     },
-    required: ["name", "last_name", "country", "department", "work_position", "username", "password"],
+    required: ["name", "last_name", "country", "department", "work_position", "username", "password", "email"],
     additionalProperties: false
 }
 

@@ -40,7 +40,10 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "knex": "^0.95.4",
-    "pg": "^8.6.0"
+    "node-storage": "^0.0.9",
+    "nodemailer": "^6.5.0",
+    "pg": "^8.6.0",
+    "speakeasy": "^2.0.0"
   },
   "engines": {
     "node": "10.x"

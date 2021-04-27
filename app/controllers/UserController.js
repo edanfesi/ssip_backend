@@ -6,6 +6,7 @@ const UserService = require('../services/UserService');
 const CreateNewUserSchema = require('../validators/CreateNewUserSchema');
 const UpdateUserSchema = require('../validators/UpdateUserSchema');
 const AuthUserSchema = require('../validators/AuthUserSchema');
+const TwoFactorSchema = require('../validators/TwoFactorSchema');
 const UserRepository = require('../repositories/UserRepository');
 
 const ajv = new Ajv()
@@ -71,6 +72,8 @@ const ajv = new Ajv()
  * @apiParam (body) {string} work_position: user's current position
  * @apiParam (body) {string} username: username that the user will use to login
  * @apiParam (body) {string} password: user's password
+ * @apiParam (body) {string} role_id: user's role id
+ * @apiParam (body) {string} email: user's email
  * 
  * @apiSuccessExample Success Response
  * HTTP/1.1 200
@@ -80,6 +83,11 @@ const ajv = new Ajv()
 UserController.createNewUser = async (req, res, next) => {
     const section = 'UserController.createNewUser';
     const logger = req.log || console.log;
+
+    const isValid = ajv.validate(CreateNewUserSchema, req.body)
+    if (!isValid) {
+        res.status(400).send("Invalid body")
+    }
 
     const data = await UserService.createNewUser(req.body, { logger });
     if (data.error) {
@@ -174,13 +182,37 @@ UserController.createNewUser = async (req, res, next) => {
         return res.status(401).send(result)
     }
 
-    req.session.loggedin = true;
+    req.session.loggedin = false;
     req.session.username = username;
+    req.session.token = result.token;
 
-    const [userData] = await UserRepository.getUserByUsername(username);
-    const { password, ...cleanData } = userData;
+    return res.status(204).send();
+ }
 
-    return res.send(cleanData);
+ UserController.twoFactorAuth = async (req, res, next) => {
+    const section = 'UserController.auth';
+    const logger = req.log || console.log;
+
+    const isValid = ajv.validate(TwoFactorSchema, req.body);
+    if (!isValid) {
+        return res.status(400).send({ "message": "Invalid body" });
+    }
+
+    const { token } = req.body;
+
+    logger('INFO', `${section}: Start auth process for token ${token}`);
+
+    if (token != req.session.token) {
+        return res.status(401).send({ message: 'wrong token' });
+    }
+
+    const username = req.session.username || "";
+    const userData = UserService.getUserByUsername(username)
+
+    req.session.loggedin = true;
+    req.session.token = null;
+
+    return res.status(200).send(userData);
  }
 
  /**
@@ -199,9 +231,13 @@ UserController.createNewUser = async (req, res, next) => {
 
     logger('INFO', `${section}: start logout process`);
 
+    if (username == null) {
+        res.send({ message: "User currently logged out" });
+    }
+
     req.session.loggedin = false;
     req.session.username = null;
 
     res.send({ message: "User log out" });
-    return response.end();
+    return res.end();
  }
