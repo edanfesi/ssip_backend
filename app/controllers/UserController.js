@@ -11,6 +11,8 @@ const UserRepository = require('../repositories/UserRepository');
 
 const ajv = new Ajv()
 
+const Users = {}
+
 /**
  * @api {get} /api/ssip/user/ Get the information of all users
  * @apiName GetUsers
@@ -182,6 +184,11 @@ UserController.createNewUser = async (req, res, next) => {
         return res.status(401).send(result)
     }
 
+    Users[username] = {
+        loggedin: false,
+        token: result.token
+    }
+
     req.session.loggedin = false;
     req.session.username = username;
     req.session.token = result.token;
@@ -198,17 +205,19 @@ UserController.createNewUser = async (req, res, next) => {
         return res.status(400).send({ "message": "Invalid body" });
     }
 
-    const { token } = req.body;
+    const { body: { token }, headers: { "auth-user": username } }= req;
+    logger('INFO', `${section}: Start auth process for token ${token} and ${Users[username]}`);
 
-    logger('INFO', `${section}: Start auth process for token ${token}`);
-
-    if (token != req.session.token) {
+    if (token.toUpperCase() != (Users[username] || {}).token) {
         return res.status(401).send({ message: 'wrong token' });
     }
 
-    const username = req.session.username || "";
-    const userData = UserService.getUserByUsername(username)
+    const userData = await UserService.getUserByUsername(username, { logger })
 
+    Users[username] = {
+        loggedin: true,
+        token: null
+    }
     req.session.loggedin = true;
     req.session.token = null;
 
