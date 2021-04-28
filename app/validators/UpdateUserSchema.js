@@ -7,7 +7,8 @@ const UpdateUserSchema = {
         department: { type: 'string' },
         work_position: { type: 'string' },
         username: { type: 'string' },
-        password: { type: 'string' }
+        password: { type: 'string' },
+        email: { type: 'string' },
     },
     additionalProperties: false
 }
