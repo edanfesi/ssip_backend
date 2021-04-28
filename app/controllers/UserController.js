@@ -6,9 +6,12 @@ const UserService = require('../services/UserService');
 const CreateNewUserSchema = require('../validators/CreateNewUserSchema');
 const UpdateUserSchema = require('../validators/UpdateUserSchema');
 const AuthUserSchema = require('../validators/AuthUserSchema');
+const TwoFactorSchema = require('../validators/TwoFactorSchema');
 const UserRepository = require('../repositories/UserRepository');
 
 const ajv = new Ajv()
+
+const Users = {}
 
 /**
  * @api {get} /api/ssip/user/ Get the information of all users
@@ -23,16 +26,6 @@ const ajv = new Ajv()
  UserController.getUsers = async (req, res, next) => {
     const section = 'UserController.getUsers';
     const logger = req.log || console.log;
-    const username = req.session.username;
-    
-    if (!req.session.loggedin) {
-        res.status(401).send({ message: "The User has to log in" });
-    }
-
-    const [userData] = await UserRepository.getUserByUsername(username);
-    if (userData.role_id != 1) {
-        res.status(403).send({ error: "The user can not do this action!" });
-    }
 
     logger('INFO', `${section}: start getting information of all users`);
 
@@ -57,16 +50,6 @@ const ajv = new Ajv()
     const section = 'UserController.getUser';
     const logger = req.log || console.log;
     const { params: { userId } } = req;
-    const username = req.session.username;
-
-    if (!req.session.loggedin) {
-        res.status(401).send({ message: "The User has to log in" });
-    }
-
-    const [userData] = await UserRepository.getUserByUsername(username);
-    if (userData.role_id != 1 && userData.id != userId) {
-        res.status(403).send({ error: "The user can not do this action!" });
-    }
 
     logger('INFO', `${section}: start getting information of the user with id ${userId}`);
 
@@ -91,6 +74,8 @@ const ajv = new Ajv()
  * @apiParam (body) {string} work_position: user's current position
  * @apiParam (body) {string} username: username that the user will use to login
  * @apiParam (body) {string} password: user's password
+ * @apiParam (body) {string} role_id: user's role id
+ * @apiParam (body) {string} email: user's email
  * 
  * @apiSuccessExample Success Response
  * HTTP/1.1 200
@@ -101,9 +86,9 @@ UserController.createNewUser = async (req, res, next) => {
     const section = 'UserController.createNewUser';
     const logger = req.log || console.log;
 
-    const isValid = ajv.validate(CreateNewUserSchema, req.body);
+    const isValid = ajv.validate(CreateNewUserSchema, req.body)
     if (!isValid) {
-        return res.status(400).send({ "message": "Invalid body" });
+        res.status(400).send("Invalid body")
     }
 
     const data = await UserService.createNewUser(req.body, { logger });
@@ -138,16 +123,6 @@ UserController.createNewUser = async (req, res, next) => {
     const section = 'UserController.updateUser';
     const logger = req.log || console.log;
     const { params: { userId } } = req;
-    const username = req.session.username;
-
-    if (!req.session.loggedin) {
-        res.status(401).send({ message: "The User has to log in" });
-    }
-
-    const [userData] = await UserRepository.getUserByUsername(username);
-    if (userData.role_id != 1) {
-        res.status(403).send({ error: "The user can not do this action!" });
-    }
 
     const isValid = ajv.validate(UpdateUserSchema, req.body)
     if (!isValid) {
@@ -174,16 +149,6 @@ UserController.createNewUser = async (req, res, next) => {
     const section = 'UserController.deleteUser';
     const logger = req.log || console.log;
     const { params: { userId } } = req;
-    const username = req.session.username;
-
-    if (!req.session.loggedin) {
-        res.status(401).send({ message: "The User has to log in" });
-    }
-
-    const [userData] = await UserRepository.getUserByUsername(username);
-    if (userData.role_id != 1) {
-        res.status(403).send({ error: "The user can not do this action!" });
-    }
 
     const data = await UserService.deleteUserById(userId, { logger });
     logger('INFO', `${section}: updated user information with name ${req.body.name} ${req.body.last_name}`)
@@ -219,13 +184,44 @@ UserController.createNewUser = async (req, res, next) => {
         return res.status(401).send(result)
     }
 
-    req.session.loggedin = true;
+    Users[username] = {
+        loggedin: false,
+        token: result.token
+    }
+
+    req.session.loggedin = false;
     req.session.username = username;
+    req.session.token = result.token;
 
-    const [userData] = await UserRepository.getUserByUsername(username);
-    const { password, ...cleanData } = userData;
+    return res.status(204).send();
+ }
 
-    return res.send(cleanData);
+ UserController.twoFactorAuth = async (req, res, next) => {
+    const section = 'UserController.auth';
+    const logger = req.log || console.log;
+
+    const isValid = ajv.validate(TwoFactorSchema, req.body);
+    if (!isValid) {
+        return res.status(400).send({ "message": "Invalid body" });
+    }
+
+    const { body: { token }, headers: { "auth-user": username } }= req;
+    logger('INFO', `${section}: Start auth process for token ${token} and ${Users[username]}`);
+
+    if (token.toUpperCase() != (Users[username] || {}).token) {
+        return res.status(401).send({ message: 'wrong token' });
+    }
+
+    const userData = await UserService.getUserByUsername(username, { logger })
+
+    Users[username] = {
+        loggedin: true,
+        token: null
+    }
+    req.session.loggedin = true;
+    req.session.token = null;
+
+    return res.status(200).send(userData);
  }
 
  /**
@@ -244,9 +240,13 @@ UserController.createNewUser = async (req, res, next) => {
 
     logger('INFO', `${section}: start logout process`);
 
+    if (username == null) {
+        res.send({ message: "User currently logged out" });
+    }
+
     req.session.loggedin = false;
     req.session.username = null;
 
     res.send({ message: "User log out" });
-    return response.end();
+    return res.end();
  }

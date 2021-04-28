@@ -1,8 +1,9 @@
 const UserService = module.exports;
 
 const bcrypt = require('bcrypt');
-const { options } = require('../..');
+const speakeasy = require('speakeasy');
 
+const EmailerUtils = require('../utils/EmailerUtils');
 
 const UserRepository = require('../repositories/UserRepository');
 UserService.getUsers = async (options) => {
@@ -21,6 +22,16 @@ UserService.getUserById = async (userId, options) => {
 
     const userInfo = await UserRepository.getUserById(userId);
     logger('INFO', `${section}: User with ID ${userId} ${JSON.stringify(userInfo)}`);
+
+    return userInfo;
+}
+
+UserService.getUserByUsername = async (username, options) => {
+    const section = 'UserService.getUserByUsername';
+    const { logger } = options;
+
+    const userInfo = await UserRepository.getUserByUsername(username);
+    logger('INFO', `${section}: User with username ${username} ${JSON.stringify(userInfo)}`);
 
     return userInfo;
 }
@@ -85,7 +96,11 @@ UserService.auth = async (data, options) => {
         return { error: "Incorrect Username and/or Password!" }
     }
 
-    return {}
+    const token = speakeasy.generateSecret({ length: 4 }).base32.substring(0,4);
+    const message = `Your code is ${token}`;
+    await EmailerUtils.sendEmail(userData.email, message);
+
+    return { token };
 }
 
 async function hashPassword(password) {

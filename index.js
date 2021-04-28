@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const session = require('express-session');
 const { urlencoded, json } = require('body-parser');
 
@@ -14,6 +15,7 @@ app.use(session({
 }));
 app.use(urlencoded());
 app.use(json());
+app.use(cors());
 
 app.use('/api/ssip', routes);
 
