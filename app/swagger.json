@@ -1,0 +1,442 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "SSIP Backend API",
+      "description": "Documentation related to the API created for the SSIP system"
+    },
+    "host": "ssip-backend.herokuapp.com",
+    "basePath": "/api/ssip/",
+    "tags": [
+        {
+            "name": "Health Check",
+            "description": "API Health check"
+        },
+    	{
+        "name": "Users",
+        "description": "API for users in the system"
+      }
+    ],
+    "schemes": [
+      "http"
+    ],
+    "consumes": [
+      "application/json"
+    ],
+    "produces": [
+      "application/json"
+    ],
+    "paths": {
+		"/": {
+			"get": {
+				"tags": [
+					"Health Check"
+				],
+				"summary": "Check the api health check",
+				"responses": {
+					"200": {
+						"description": "Check the api health check",
+						"schema": {
+							"$ref": "#/definitions/Healthcheck"
+						}
+					},
+					"4xx": {
+						"description": "Client Error"
+					},
+					"5xx": {
+						"description": "Server Error"
+					}
+				}
+			}
+		},
+        "/user": {
+          "get": {
+                "tags": [
+                  "Users"
+                ],
+                "summary": "Get all users in the system",
+                "responses": {
+                    "200": {
+                        "description": "Get all users saved in the system",
+                        "schema": {
+                            "$ref": "#/definitions/Users"
+                        }
+                    },
+                    "4xx": {
+                        "description": "Client Error"
+                    },
+                    "5xx": {
+                        "description": "Server Error"
+                    }
+                }
+            }
+        },
+        "/user/{userId}": {
+            "parameters": [
+                {
+                  "name": "userId",
+                  "in": "path",
+                  "required": true,
+                  "description": "ID of user that we want to use",
+                  "type": "string"
+                }
+            ],
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get the user information with id {userId}",
+                "responses": {
+                    "200": {
+                        "description": "Get the user information with id {userId}",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "4xx": {
+                        "description": "Client Error"
+                    },
+                    "5xx": {
+                        "description": "Server Error"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                  "Users"
+                ],
+                "summary": "Update the user in system with id {userId}",
+                "description": "Update the user in system with id {userId}",
+                "parameters": [
+                  {
+                    "name": "user",
+                    "in": "body",
+                    "description": "User that we want to update",
+                    "schema": {
+                      "$ref": "#/definitions/User"
+                    }
+                  }
+                ],
+                "produces": [
+                  "application/json"
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Updated user",
+                    "schema": {
+                      "$ref": "#/definitions/User"
+                    }
+                  }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Delete the user with id {userId}",
+                "responses": {
+                    "200": {
+                        "description": "Delete the user with id {userId}",
+                        "schema": {
+                            "$ref": "#/definitions/DeletedUser"
+                        }
+                    },
+                    "4xx": {
+                        "description": "Client Error"
+                    },
+                    "5xx": {
+                        "description": "Server Error"
+                    }
+                }
+            }
+        },
+        "/user/new": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Create new user in system",
+                "description": "Create new user in system",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "body",
+                        "description": "User that we want to create",
+                        "schema": {
+                            "$ref": "#/definitions/NewUser"
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "New user is created",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "4xx": {
+                        "description": "Client Error"
+                    },
+                    "5xx": {
+                        "description": "Server Error"
+                    }
+                }
+            }
+        },
+        "/user/auth": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Authenticate new user in system. Start the 2FA authentication",
+                "description": "Authenticate new user in system. Start the 2FA authentication",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "body",
+                        "description": "Authenticate new user in system",
+                        "schema": {
+                            "$ref": "#/definitions/AuthUser"
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Start the 2FA process"
+                    },
+                    "4xx": {
+                        "description": "Client Error"
+                    },
+                    "5xx": {
+                        "description": "Server Error"
+                    }
+                }
+            }
+        },
+        "/user/2fa": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Authenticate new user in system. Finish authentication",
+                "description": "Authenticate new user in system. Finish authentication",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "body",
+                        "description": "Authenticate new user in system",
+                        "schema": {
+                            "$ref": "#/definitions/2fa"
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "End the 2FA process"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "5xx": {
+                        "description": "Server Error"
+                    }
+                }
+            }
+        },
+        "/user/logout": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Logout the user",
+                "description": "Logout the user",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Logout the user"
+                    },
+                    "4xx": {
+                        "description": "Client Error"
+                    },
+                    "5xx": {
+                        "description": "Server Error"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+		"Healthcheck": {
+			"required": [
+				"status"
+			],
+			"properties": {
+			  "status": {
+				"type": "string"
+			  }
+			}
+		},
+      "User": {
+        "required": [
+            "name",
+            "last_name",
+            "country",
+            "department",
+            "work_position",
+            "username",
+            "password",
+            "email"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "uniqueItems": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "work_position": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string",
+            "uniqueItems": true
+          },
+          "password": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "uniqueItems": true
+          },
+          "role_id": {
+            "type": "integer"
+          },
+          "is_logged": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      },
+      "Users": {
+        "type": "array",
+        "$ref": "#/definitions/User"
+      },
+      "NewUser": {
+        "required": [
+            "name",
+            "last_name",
+            "country",
+            "department",
+            "work_position",
+            "username",
+            "password",
+            "email"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "work_position": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string",
+            "uniqueItems": true
+          },
+          "password": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "uniqueItems": true
+          },
+          "role_id": {
+            "type": "integer"
+          }
+        }
+      },
+      "DeletedUser": {
+        "required": [
+            "deleted"
+        ],
+        "properties": {
+          "deleted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AuthUser": {
+        "required": [
+            "username",
+            "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "uniqueItems": true
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "2fa": {
+        "required": [
+            "token"
+        ],
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "Error": {
+        "required": [
+            "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
