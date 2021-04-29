@@ -2,8 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const { urlencoded, json } = require('body-parser');
+const swaggerUi = require('swagger-ui-express');
 
 const routes = require('./app/routes');
+const swaggerDocument = require('./app/swagger.json');
 
 const { PORT } = process.env;
 
@@ -17,6 +19,11 @@ app.use(urlencoded());
 app.use(json());
 app.use(cors());
 
+app.get('/', function(req, res){
+    res.send({ status: "OK" });
+});
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/ssip', routes);
 
 app.listen(PORT || 8000);
