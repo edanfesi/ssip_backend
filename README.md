@@ -1,17 +1,33 @@
-# SSIP A labor assistance system for Platzi Master.
 
-Los usuarios se pueden logear con Two Factor Authentication. Una vez logueados automáticamente el sistema registrará los datos  del empleado y presentara un resumen de estos datos. Tendrá un timeout de 40 segundos  una vez el empleado sea logeado. El usuario administrador tendrá la posibilidad de manejar un CRUD de empleados y visualización general del reporte diario de asistencia.
+# SSIP [Backend]
 
-# Acerca de
+SSIP Platform, a platform for managing the assistance of its employees.
 
-### Proyecto front-end desarrollado con:
+__If the user is an employee:__
+It can log in with Two Factor Authentication. Once logged in, the system will automatically record its data and present a summary of it. It will have a timeout of 40 seconds once the employee is logged in to log out. 
 
-- SASS.
-- HTML.
-- JAVASCRIPT.
+__If the user is an admin:__
+The administrator user will have the possibility of managing a CRUD of employees (creation, update, delete and see all of it) and general visualization of the daily attendance report.
 
-### Proyecto back-end desarrollado con:
 
-- EXPRESS.
-- NODE.
-- JAVASCRIPT.
+
+## API Reference
+You can access the interactive documentation [right here](https://ssip-backend.herokuapp.com/api-docs/)
+
+## Tech Stack
+
+**Server:** Node, Express
+
+  
+## Roadmap
+
+- Additional browser support
+
+- Add more integrations
+
+  
+## Author
+
+- [Edward Fernandez](https://www.github.com/edanfesi)
+
+  
