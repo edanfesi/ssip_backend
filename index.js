@@ -11,16 +11,16 @@ const { PORT } = process.env;
 
 const app = express();
 app.use(session({
-    secret: 'secret',
-    resave: true,
-    saveUninitialized: true
+  secret: 'secret',
+  resave: true,
+  saveUninitialized: true,
 }));
 app.use(urlencoded());
 app.use(json());
 app.use(cors());
 
-app.get('/', function(req, res){
-    res.send({ status: "OK" });
+app.get('/', (req, res) => {
+  res.send({ status: 'OK' });
 });
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
